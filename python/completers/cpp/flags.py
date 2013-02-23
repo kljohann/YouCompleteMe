@@ -106,7 +106,7 @@ def _FlagsModuleSourceFileForFile( filename ):
   while True:
     current_file = os.path.join( parent_folder, YCM_EXTRA_CONF_FILENAME )
     if os.path.exists( current_file ):
-      if ( not vimsupport.GetVariableValue( "g:ycm_confirm_extra_conf" ) or
+      if ( not int( vimsupport.GetVariableValue( "g:ycm_confirm_extra_conf" ) ) or
            vimsupport.Confirm( CONFIRM_CONF_FILE_MESSAGE.format( current_file ), "&Yes", "&No" ) == 1 ):
         ycm_conf_file = current_file
         break
