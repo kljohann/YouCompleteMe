@@ -59,6 +59,13 @@ def PostVimMessage( message ):
                .format( EscapeForVim( message ) ) )
 
 
+def Confirm( message, *choices, **options ):
+  to_eval = "confirm('{0}', '{1}', {2})".format( EscapeForVim( message ),
+                                                 EscapeForVim( "\n" .join( choices ) ),
+                                                 options.get('default', 1 ) )
+  return int( vim.eval( to_eval ) )
+
+
 def EchoText( text ):
   def EchoLine( text ):
     vim.command( "echom '{0}'".format( EscapeForVim( text ) ) )

@@ -29,6 +29,7 @@ YCM_EXTRA_CONF_FILENAME = '.ycm_extra_conf.py'
 NO_EXTRA_CONF_FILENAME_MESSAGE = ('No {0} file detected, so no compile flags '
   'are available. Thus no semantic support for C/C++/ObjC/ObjC++. See the '
   'docs for details.').format( YCM_EXTRA_CONF_FILENAME )
+CONFIRM_CONF_FILE_MESSAGE = 'Found {0}. Load?'
 GLOBAL_YCM_EXTRA_CONF_FILE = os.path.expanduser(
     vimsupport.GetVariableValue( "g:ycm_global_ycm_extra_conf" )
 )
@@ -105,8 +106,10 @@ def _FlagsModuleSourceFileForFile( filename ):
   while True:
     current_file = os.path.join( parent_folder, YCM_EXTRA_CONF_FILENAME )
     if os.path.exists( current_file ):
-      ycm_conf_file = current_file
-      break
+      if ( not vimsupport.GetVariableValue( "g:ycm_confirm_extra_conf" ) or
+           vimsupport.Confirm( CONFIRM_CONF_FILE_MESSAGE.format( current_file ), "&Yes", "&No" ) == 1 ):
+        ycm_conf_file = current_file
+        break
 
     old_parent_folder = parent_folder
     parent_folder = os.path.dirname( parent_folder )
