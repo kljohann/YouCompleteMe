@@ -104,7 +104,7 @@ let g:ycm_global_ycm_extra_conf =
       \ get( g:, 'ycm_global_ycm_extra_conf', '' )
 
 let g:ycm_confirm_extra_conf =
-      \ get( g:, 'ycm_confirm_extra_conf', 0 )
+      \ get( g:, 'ycm_confirm_extra_conf', 1 )
 
 let g:ycm_semantic_triggers =
       \ get( g:, 'ycm_semantic_triggers', {

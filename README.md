@@ -316,6 +316,9 @@ method in that module which should provide it with the information necessary to
 compile the current file. (You can also provide a path to a global
 `.ycm_extra_conf.py` file, which will be used as a fallback. See the Options
 section for more details.)
+To prevent the execution of malicious code YCM will ask once per module
+if it is safe to be loaded. (This can be disabled. See the Options section.)
+
 
 This system was designed this way so that the user can perform any arbitrary
 sequence of operations to produce a list of compilation flags YCM should hand
@@ -648,6 +651,15 @@ found.
 You can place such a global file anywhere in your filesystem.
 
 Default: `''`
+
+    let g:ycm_global_ycm_extra_conf = ''
+
+### The `g:ycm_confirm_extra_conf` option
+
+When this option is set to `1` YCM will ask once per '.ycm_extra_conf.py' file
+if it is safe to be loaded. This is to prevent execution of malicious code.
+
+Default: `0`
 
     let g:ycm_global_ycm_extra_conf = ''
 

@@ -35,7 +35,8 @@ Contents ~
   12. The |g:ycm_key_invoke_completion| option
   13. The |g:ycm_key_detailed_diagnostics| option
   14. The |g:ycm_global_ycm_extra_conf| option
-  15. The |g:ycm_semantic_triggers| option
+  15. The |g:ycm_confirm_extra_conf| option
+  16. The |g:ycm_semantic_triggers| option
  8. FAQ                                                      |youcompleteme-faq|
   1. I get a linker warning regarding |libpython| on Mac when compiling YCM
   2. I get a weird window at the top of my file when I use the semantic engine
@@ -364,6 +365,8 @@ found, it is loaded (only once!) as a Python module. YCM calls a
 information necessary to compile the current file. (You can also provide a
 path to a global '.ycm_extra_conf.py' file and override this searching
 behavior. See the Options section for more details.)
+To prevent the execution of malicious code YCM will ask once per module
+if it is safe to be loaded. (This can be disabled. See the Options section.)
 
 This system was designed this way so that the user can perform any arbitrary
 sequence of operations to produce a list of compilation flags YCM should hand
@@ -726,6 +729,16 @@ You can place such a global file anywhere in your filesystem.
 Default: ''
 >
     let g:ycm_global_ycm_extra_conf = ''
+
+-------------------------------------------------------------------------------
+The *g:ycm_confirm_extra_conf* option
+
+When this option is set to `1` YCM will ask once per '.ycm_extra_conf.py' file
+if it is safe to be loaded. This is to prevent execution of malicious code.
+
+Default: '1'
+>
+    let g:ycm_confirm_extra_conf = 1
 
 -------------------------------------------------------------------------------
 The *g:ycm_semantic_triggers* option
