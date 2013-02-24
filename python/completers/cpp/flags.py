@@ -69,17 +69,26 @@ class Flags( object ):
 
 
   def _FlagsModuleForFile( self, filename ):
-    try:
-      return self.flags_module_for_file[ filename ]
-    except KeyError:
-      flags_module_file = _FlagsModuleSourceFileForFile( filename )
-      if not flags_module_file:
-        return None
+    """Return the module that will compute the flags necessary to compile the file.
+    This will try all files returned by _FlagsModuleSourceFilesForFile in order
+    and optionally ask the user for confirmation before loading.
+    If no module was found or allowed to load None is returned."""
 
-      try:
-        flags_module = self.flags_module_for_flags_module_file[
-          flags_module_file ]
-      except KeyError:
+    flags_module = self.flags_module_for_file.get( filename )
+    if flags_module:
+      return flags_module
+
+    for flags_module_file in _FlagsModuleSourceFilesForFile( filename ):
+      if not self.flags_module_for_flags_module_file.has_key( flags_module_file ):
+        # Ask if we should load this module (don't ask for global config)
+        if ( flags_module_file != GLOBAL_YCM_EXTRA_CONF_FILE  and
+              vimsupport.GetBoolValue( 'g:ycm_confirm_extra_conf' ) and
+              not vimsupport.Confirm(
+                CONFIRM_CONF_FILE_MESSAGE.format( flags_module_file ) ) ):
+          # Otherwise disable module for this session
+          self.flags_module_for_flags_module_file[ flags_module_file ] = None
+          continue
+
         sys.path.insert( 0, _DirectoryOfThisScript() )
         flags_module = imp.load_source( _RandomName(), flags_module_file )
         del sys.path[ 0 ]
@@ -87,40 +96,34 @@ class Flags( object ):
         self.flags_module_for_flags_module_file[
           flags_module_file ] = flags_module
 
-      self.flags_module_for_file[ filename ] = flags_module
-      return flags_module
+      flags_module = self.flags_module_for_flags_module_file[ flags_module_file ]
+      # Return first model we were allowed to load
+      if flags_module:
+        self.flags_module_for_file[ filename ] = flags_module
+        return flags_module
+
+    return None
 
 
+def _FlagsModuleSourceFilesForFile( filename ):
+  """For a given filename, search all parent folders for YCM_EXTRA_CONF_FILENAME
+  files that will compute the flags necessary to compile the file.
+  The nearest files will be returned first.
+  If GLOBAL_YCM_EXTRA_CONF_FILE exists it is returned as a fallback."""
 
-def _FlagsModuleSourceFileForFile( filename ):
-  """For a given filename, finds its nearest YCM_EXTRA_CONF_FILENAME file that
-  will compute the flags necessary to compile the file. If no
-  YCM_EXTRA_CONF_FILENAME file could be found, try to use
-  GLOBAL_YCM_EXTRA_CONF_FILE instead. If that also fails, return None.
-  Uses the global ycm_extra_conf file if one is set."""
+  # Build a list of all parent folders: ['', '/home', '/home/user', ...]
+  parent_folders = os.path.abspath( os.path.dirname( filename ) ).split( os.path.sep )
+  if not parent_folders[0]:
+    parent_folders[0] = os.path.sep
+  parent_folders = [ os.path.join( *parent_folders[:i + 1] )
+                     for i in xrange( len( parent_folders ) ) ]
 
-  ycm_conf_file = None
-  parent_folder = os.path.dirname( filename )
-  old_parent_folder = ''
-
-  while True:
-    current_file = os.path.join( parent_folder, YCM_EXTRA_CONF_FILENAME )
-    if os.path.exists( current_file ):
-      if ( not int( vimsupport.GetVariableValue( "g:ycm_confirm_extra_conf" ) ) or
-           vimsupport.Confirm( CONFIRM_CONF_FILE_MESSAGE.format( current_file ), "&Yes", "&No" ) == 1 ):
-        ycm_conf_file = current_file
-        break
-
-    old_parent_folder = parent_folder
-    parent_folder = os.path.dirname( parent_folder )
-    if parent_folder is old_parent_folder:
-      break
-
-  if ( not ycm_conf_file and GLOBAL_YCM_EXTRA_CONF_FILE and
-       os.path.exists( GLOBAL_YCM_EXTRA_CONF_FILE ) ):
-    ycm_conf_file = GLOBAL_YCM_EXTRA_CONF_FILE
-
-  return ycm_conf_file
+  for folder in reversed( parent_folders ):
+    candidate = os.path.join( folder, YCM_EXTRA_CONF_FILENAME )
+    if os.path.exists( candidate ):
+      yield candidate
+  if ( GLOBAL_YCM_EXTRA_CONF_FILE and os.path.exists( GLOBAL_YCM_EXTRA_CONF_FILE ) ):
+    yield GLOBAL_YCM_EXTRA_CONF_FILE
 
 
 def _RandomName():
