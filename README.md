@@ -316,8 +316,9 @@ method in that module which should provide it with the information necessary to
 compile the current file. (You can also provide a path to a global
 `.ycm_extra_conf.py` file, which will be used as a fallback. See the Options
 section for more details.)
-To prevent the execution of malicious code YCM will ask once per module
-if it is safe to be loaded. (This can be disabled. See the Options section.)
+To prevent the execution of malicious code from a file you didn't write
+YCM will ask once per module if it is safe to be loaded.
+This can be disabled and you can white-/blacklist files.
 
 
 This system was designed this way so that the user can perform any arbitrary
@@ -663,6 +664,28 @@ from a '.ycm_extra_conf.py' file you didn't write.
 Default: `1`
 
     let g:ycm_confirm_extra_conf = 1
+
+### The `g:ycm_extra_conf_whitelist` option
+
+This option may contain several globbing patterns separated by commas.
+If a '.ycm_extra_conf.py' file matches a pattern it will be loaded and
+no confirmation dialog will be shown.
+
+Example:
+    let g:ycm_extra_conf_whitelist = '~/dev/**/*,~/test/ycm/.ycm_extra_conf.py'
+
+Default: `''`
+
+    let g:ycm_extra_conf_whitelist = ''
+
+### The `g:ycm_extra_conf_blacklist` option
+
+This option may be used to disable loading of certain '.ycm_extra_conf.py' files.
+See `g:ycm_extra_conf_whitelist`.
+
+Default: `''`
+
+    let g:ycm_extra_conf_blacklist = ''
 
 ### The `g:ycm_semantic_triggers` option
 

@@ -24,6 +24,7 @@ import random
 import string
 import sys
 import vimsupport
+from fnmatch import fnmatch
 
 YCM_EXTRA_CONF_FILENAME = '.ycm_extra_conf.py'
 NO_EXTRA_CONF_FILENAME_MESSAGE = ('No {0} file detected, so no compile flags '
@@ -99,9 +100,13 @@ class FlagsModules( object ):
     By default this will ask the user for confirmation."""
     if module_file == GLOBAL_YCM_EXTRA_CONF_FILE:
       return True
-    if (vimsupport.GetBoolValue( 'g:ycm_confirm_extra_conf' ) and
-        not vimsupport.Confirm(
-          CONFIRM_CONF_FILE_MESSAGE.format( module_file ) ) ):
+    elif CheckGlobList( 'g:ycm_extra_conf_whitelist', module_file ):
+      return True
+    elif CheckGlobList( 'g:ycm_extra_conf_blacklist', module_file ):
+      return False
+    elif ( vimsupport.GetBoolValue( 'g:ycm_confirm_extra_conf' ) and
+           not vimsupport.Confirm(
+             CONFIRM_CONF_FILE_MESSAGE.format( module_file ) ) ):
       return False
     return True
 
@@ -187,3 +192,13 @@ def _SpecialClangIncludes():
 
 def _DirectoryOfThisScript():
   return os.path.dirname( os.path.abspath( __file__ ) )
+
+
+def CheckGlobList( variable, filename ):
+  abspath = os.path.abspath( filename )
+  globlist = vimsupport.GetVariableValue( variable )
+  if globlist:
+    for glob in globlist.split(','):
+      if fnmatch( abspath, os.path.abspath( os.path.expanduser( glob ) ) ):
+        return True
+  return False
