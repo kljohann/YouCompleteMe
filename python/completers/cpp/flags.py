@@ -108,22 +108,26 @@ class Flags( object ):
 def _FlagsModuleSourceFilesForFile( filename ):
   """For a given filename, search all parent folders for YCM_EXTRA_CONF_FILENAME
   files that will compute the flags necessary to compile the file.
-  The nearest files will be returned first.
   If GLOBAL_YCM_EXTRA_CONF_FILE exists it is returned as a fallback."""
-
-  # Build a list of all parent folders: ['', '/home', '/home/user', ...]
-  parent_folders = os.path.abspath( os.path.dirname( filename ) ).split( os.path.sep )
-  if not parent_folders[0]:
-    parent_folders[0] = os.path.sep
-  parent_folders = [ os.path.join( *parent_folders[:i + 1] )
-                     for i in xrange( len( parent_folders ) ) ]
-
-  for folder in reversed( parent_folders ):
+  for folder in _PathsToAllParentFolders( filename ):
     candidate = os.path.join( folder, YCM_EXTRA_CONF_FILENAME )
     if os.path.exists( candidate ):
       yield candidate
   if ( GLOBAL_YCM_EXTRA_CONF_FILE and os.path.exists( GLOBAL_YCM_EXTRA_CONF_FILE ) ):
     yield GLOBAL_YCM_EXTRA_CONF_FILE
+
+
+def _PathsToAllParentFolders( filename ):
+  """Build a list of all parent folders of a file.
+  The neares files will be returned first.
+  Example: _PathsToAllParentFolders( '/home/user/projects/test/test.c' )
+    [ '/home/user/projects/test', '/home/user/projects', '/home/user', '/home', '/' ]"""
+  parent_folders = os.path.abspath( os.path.dirname( filename ) ).split( os.path.sep )
+  if not parent_folders[0]:
+    parent_folders[0] = os.path.sep
+  parent_folders = [ os.path.join( *parent_folders[:i + 1] )
+                     for i in xrange( len( parent_folders ) ) ]
+  return reversed( parent_folders )
 
 
 def _RandomName():
