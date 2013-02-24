@@ -660,9 +660,9 @@ When this option is set to `1` YCM will ask once per '.ycm_extra_conf.py' file
 if it is safe to be loaded. This is to prevent execution of malicious code
 from a '.ycm_extra_conf.py' file you didn't write.
 
-Default: `0`
+Default: `1`
 
-    let g:ycm_global_ycm_extra_conf = ''
+    let g:ycm_confirm_extra_conf = 1
 
 ### The `g:ycm_semantic_triggers` option
 
