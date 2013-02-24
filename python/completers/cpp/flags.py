@@ -35,20 +35,35 @@ GLOBAL_YCM_EXTRA_CONF_FILE = os.path.expanduser(
 )
 
 class Flags( object ):
+  """Keeps track of the flags necessary to compile a file.
+  The flags are returned by a method FlagsForFile( filename ) located
+  in python files (hereafter referred to as 'models') that can be created by the user."""
   def __init__( self ):
     # It's caches all the way down...
     self.flags_for_file = {}
-    self.flags_module_for_file = {}
-    self.flags_module_for_flags_module_file = {}
+    self.module_for_file = {}
+    self.modules = FlagsModules()
     self.special_clang_flags = _SpecialClangIncludes()
     self.no_extra_conf_file_warning_posted = False
 
+  def ModuleForFile( self, filename ):
+    """This will try all files returned by _FlagsModuleSourceFilesForFile in order
+    and return the first module that was allowed to be loaded.
+    If no module was found or allowed to load None is returned."""
+
+    if not self.module_for_file.has_key( filename ):
+      for flags_module_file in _FlagsModuleSourceFilesForFile( filename ):
+        module = self.module_for_file[ filename ] = self.modules[ flags_module_file ]
+        if module:
+          break
+
+    return self.module_for_file[ filename ]
 
   def FlagsForFile( self, filename ):
     try:
       return self.flags_for_file[ filename ]
     except KeyError:
-      flags_module = self._FlagsModuleForFile( filename )
+      flags_module = self.ModuleForFile( filename )
       if not flags_module:
         if not self.no_extra_conf_file_warning_posted:
           vimsupport.PostVimMessage( NO_EXTRA_CONF_FILENAME_MESSAGE )
@@ -68,41 +83,46 @@ class Flags( object ):
       return sanitized_flags
 
 
-  def _FlagsModuleForFile( self, filename ):
-    """Return the module that will compute the flags necessary to compile the file.
-    This will try all files returned by _FlagsModuleSourceFilesForFile in order
-    and optionally ask the user for confirmation before loading.
-    If no module was found or allowed to load None is returned."""
+class FlagsModules( object ):
+  """Keeps track of models that are used to compute the flags necessary to compile a file.
+  Modules are loaded on-demand and cached in self.modules for quick access."""
+  def __init__( self ):
+    self.modules = {}
 
-    flags_module = self.flags_module_for_file.get( filename )
-    if flags_module:
-      return flags_module
+  def disable( self, module_file ):
+    """Disables the loading of a module for the current session."""
+    self.modules[ module_file ] = None
 
-    for flags_module_file in _FlagsModuleSourceFilesForFile( filename ):
-      if not self.flags_module_for_flags_module_file.has_key( flags_module_file ):
-        # Ask if we should load this module (don't ask for global config)
-        if ( flags_module_file != GLOBAL_YCM_EXTRA_CONF_FILE  and
-              vimsupport.GetBoolValue( 'g:ycm_confirm_extra_conf' ) and
-              not vimsupport.Confirm(
-                CONFIRM_CONF_FILE_MESSAGE.format( flags_module_file ) ) ):
-          # Otherwise disable module for this session
-          self.flags_module_for_flags_module_file[ flags_module_file ] = None
-          continue
+  @staticmethod
+  def should_load( module_file ):
+    """Checks if a module is safe to be loaded.
+    By default this will ask the user for confirmation."""
+    if module_file == GLOBAL_YCM_EXTRA_CONF_FILE:
+      return True
+    if (vimsupport.GetBoolValue( 'g:ycm_confirm_extra_conf' ) and
+        not vimsupport.Confirm(
+          CONFIRM_CONF_FILE_MESSAGE.format( module_file ) ) ):
+      return False
+    return True
 
-        sys.path.insert( 0, _DirectoryOfThisScript() )
-        flags_module = imp.load_source( _RandomName(), flags_module_file )
-        del sys.path[ 0 ]
+  def load( self, module_file ):
+    """Load and return the module contained in a file.
+    This will return None if the module was not allowed to be loaded."""
+    if self.modules.has_key( module_file ):
+      return self.modules[ module_file ]
 
-        self.flags_module_for_flags_module_file[
-          flags_module_file ] = flags_module
+    if not self.should_load( module_file ):
+      return self.disable( module_file )
 
-      flags_module = self.flags_module_for_flags_module_file[ flags_module_file ]
-      # Return first model we were allowed to load
-      if flags_module:
-        self.flags_module_for_file[ filename ] = flags_module
-        return flags_module
+    sys.path.insert( 0, _DirectoryOfThisScript() )
+    module = imp.load_source( _RandomName(), module_file )
+    del sys.path[ 0 ]
 
-    return None
+    self.modules[ module_file ] = module
+    return module
+
+  def __getitem__( self, key ):
+    return self.load( key )
 
 
 def _FlagsModuleSourceFilesForFile( filename ):
