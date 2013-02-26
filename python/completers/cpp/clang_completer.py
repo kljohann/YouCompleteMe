@@ -209,6 +209,41 @@ class ClangCompleter( Completer ):
     source = self.flags.ModuleForFile( filename )
     return 'Flags for {0} loaded from {1}:\n{2}'.format( filename, source, list( flags ) )
 
+  def OnUserCommand( self, command = '', *args ):
+    if not command:
+      vimsupport.PostVimMessage(
+        'clang completer: See :help YcmCompleter-clang for defined commands.' )
+    elif command == 'edit-flags':
+      self._UserCommandEditFlags( *args )
+    elif command == 'reload':
+      self._UserCommandReload( *args )
+    else:
+      vimsupport.PostVimMessage(
+        'clang completer: Unknown command "{0}".'.format( command ) )
+
+  def _UserCommandEditFlags( self, filename = '' ):
+    filename = vim.current.buffer.name
+    source = self.flags.ModuleForFile( filename )
+    if source:
+      vim.command( ':e {0}'.format( source ) )
+    else:
+      vimsupport.PostVimMessage( 'No flags file loaded.' )
+
+  def _UserCommandReload( self, filename = '' ):
+    if not filename:
+      filename = self.flags.ModuleForFile( vim.current.buffer.name )
+      if not filename:
+        return vimsupport.PostVimMessage( 'No flags file loaded.' )
+    elif filename == '%':
+      filename = vim.current.buffer.name
+
+    elif self.flags.ReloadModule( filename ):
+      vimsupport.PostVimMessage(
+        'Reloaded flags file "{0}".'.format( filename ) )
+    else:
+      vimsupport.PostVimMessage(
+        'Failed to reload flags file "{0}".'.format( filename ) )
+
 
 # TODO: make these functions module-local
 def CompletionDataToDict( completion_data ):
