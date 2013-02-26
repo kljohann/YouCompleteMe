@@ -56,8 +56,13 @@ if ( USE_CLANG_COMPLETER AND NOT USE_SYSTEM_LIBCLANG AND NOT PATH_TO_LLVM_ROOT )
       set( CLANG_DIRNAME "clang+llvm-3.2-x86_64-apple-darwin11" )
       set( CLANG_MD5 "fbdca3b4e8cdaa2352f2aeb038a16532" )
     else()
-      set( CLANG_DIRNAME "clang+llvm-3.2-x86_64-linux-ubuntu-12.04" )
-      set( CLANG_MD5 "81821e339d7300afb76aca8edab2cf4f" )
+      if ( 64_BIT_PLATFORM )
+        set( CLANG_DIRNAME "clang+llvm-3.2-x86_64-linux-ubuntu-12.04" )
+        set( CLANG_MD5 "81821e339d7300afb76aca8edab2cf4f" )
+      else()
+        set( CLANG_DIRNAME "clang+llvm-3.2-x86-linux-ubuntu-12.04" )
+        set( CLANG_MD5 "cea2d01b3206e92a8df7b079935c070b" )
+      endif()
     endif()
 
     set( CLANG_FILENAME "${CLANG_DIRNAME}.tar.gz" )
@@ -276,10 +281,13 @@ endif()
 # for our module
 set_target_properties( ${PROJECT_NAME} PROPERTIES PREFIX "")
 
-# Even on macs, we want a .so extension instead of a .dylib which is what cmake
-# would give us by default. Python won't recognize a .dylib as a module, but it
-# will recognize a .so
-if ( NOT WIN32 AND NOT CYGWIN )
+if ( WIN32 OR CYGWIN )
+  # This is the extension for compiled Python modules on Windows
+  set_target_properties( ${PROJECT_NAME} PROPERTIES SUFFIX ".pyd")
+else()
+  # Even on macs, we want a .so extension instead of a .dylib which is what
+  # cmake would give us by default. Python won't recognize a .dylib as a module,
+  # but it will recognize a .so
   set_target_properties( ${PROJECT_NAME} PROPERTIES SUFFIX ".so")
 endif()
 

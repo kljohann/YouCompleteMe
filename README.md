@@ -124,7 +124,7 @@ Install YouCompleteMe with [Vundle][].
 using Vundle and the ycm_core library API has changed (happens rarely), YCM will
 notify you to recompile it. You should then rerun the install process.
 
-Install CMake. `sudo apt-get install cmake`
+Install development tools and CMake: `sudo apt-get install build-essential cmake`
 
 Make sure you have Python headers installed: `sudo apt-get install python-dev`.
 
@@ -147,6 +147,12 @@ YCM comes with sane defaults for its options, but you still may want to take a
 look at what's available for configuration. There are a few interesting options
 that are conservatively turned off by default that you may want to turn on.
 
+Windows Installation
+--------------------
+
+YCM has **no official support for Windows**, but that doesn't mean you can't get
+it to work there. See the [Windows Installation Guide][win-wiki] wiki page. Feel
+free to add to it.
 
 Full Installation Guide
 -----------------------
@@ -443,6 +449,15 @@ line with the diagnostic.
 This will print out various debug information for the current file. Useful to
 see what compile commands will be used for the file if you're using the semantic
 completion engine.
+
+### The `YcmCompleter` command
+
+This command can be used to invoke completer-specific commands.
+If the first argument is of the form 'ft=...' the completer for that file type
+will be used (for example 'ft=cpp'), else the native completer
+of the current buffer will be used.
+Call 'YcmCompleter' without further arguments for information about the commands
+you can call for the selected completer.
 
 Options
 -------
@@ -908,3 +923,4 @@ This software is licensed under the [GPL v3 license][gpl].
 [issue18]: https://github.com/Valloric/YouCompleteMe/issues/18
 [delimitMate]: https://github.com/Raimondi/delimitMate
 [completer-api]: https://github.com/Valloric/YouCompleteMe/blob/master/python/completers/completer.py
+[win-wiki]: https://github.com/Valloric/YouCompleteMe/wiki/Windows-Installation-Guide
